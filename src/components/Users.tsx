@@ -10,9 +10,10 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Pagination from "./Pagination";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EditModal from "./EditModal";
 import NewModal from "./NewModal";
+import useFetchAllUsers from "../hooks/useFetchAllUsers";
 
 const rows = [
   {
@@ -40,8 +41,25 @@ const rows = [
 const Users = () => {
   const [open, setOpen] = useState(false);
   const [addModal, setAddModal] = useState(false);
+  const [offset, setOffset] = useState(0);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const [userData, setUserData] = useState([]);
+
+  
+  const { data, isLoading, error } = useFetchAllUsers(offset); // Appel du hook directement
+  
+  useEffect(() => {
+    console.log('====================================');
+    console.log(offset);
+    console.log('====================================');
+      if (data) {
+          setUserData(data.data); // Mettre à jour les données utilisateur
+      }
+  }, [offset,data]);
+  
+ // console.log(rows);
+  
 
   // const handleAddOpen = () => setAddModal(true);
   const handleAddClose = () => setAddModal(false);
@@ -59,30 +77,30 @@ const Users = () => {
       editable: false,
     },
     {
-      field: "login",
-      headerName: "Login",
-      width: 250,
-      editable: false,
-    },
-    {
-      field: "name",
-      headerName: "Name",
-      width: 150,
-      editable: false,
-    },
-    {
       field: "email",
-      headerName: "Email",
+      headerName: "email",
       width: 250,
       editable: false,
     },
     {
-      field: "cur",
-      headerName: "Cur",
+      field: "firstName",
+      headerName: "First name",
       width: 150,
       editable: false,
     },
     {
+      field: "lastName",
+      headerName: "Last name",
+      width: 250,
+      editable: false,
+    },
+    {
+      field: "createdAt",
+      headerName: "Created at",
+      width: 150,
+      editable: false,
+    },
+    /*{
       field: "max",
       headerName: "Max",
       width: 150,
@@ -94,7 +112,7 @@ const Users = () => {
       type: "number",
       width: 120,
       editable: false,
-    },
+    },*/
     {
       field: "actions",
       headerName: "Actions",
@@ -436,7 +454,7 @@ const Users = () => {
                 mt: "3px",
               },
             }}
-            rows={rows}
+            rows={userData}
             getRowId={(row: any) => {
               return row?.id;
             }}
@@ -444,7 +462,7 @@ const Users = () => {
             hideFooter
           />
         </Box>
-        <Pagination />
+        <Pagination next={()=>setOffset(offset+1)} prev={()=>offset>0?setOffset(offset-1):null} />
       </div>
     </>
   );

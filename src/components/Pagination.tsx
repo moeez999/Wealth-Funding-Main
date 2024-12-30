@@ -2,7 +2,7 @@ import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { IconButton } from "@mui/material";
 
-const Pagination = () => {
+const Pagination = ({next, prev}) => {
   return (
     <>
       <hr className="h-px py-[0.24px] my-4 bg-[#858585]"></hr>
@@ -11,7 +11,7 @@ const Pagination = () => {
           <IconButton>
             <NavigateBeforeIcon />
           </IconButton>
-          <button className="hidden xl:block font-medium text-lg font-[Montserrat] text-[#00BE64] cursor-pointer  p-[0.90rem] rounded-lg">
+          <button onClick={()=>prev()} className="hidden xl:block font-medium text-lg font-[Montserrat] text-[#00BE64] cursor-pointer  p-[0.90rem] rounded-lg">
             Previous
           </button>
         </div>
@@ -52,7 +52,7 @@ const Pagination = () => {
         </div>
 
         <div className="flex flex-row items-center">
-          <button className="hidden xl:block font-medium text-lg font-[Montserrat] text-[#00BE64] cursor-pointer  p-[0.90rem] rounded-lg">
+          <button onClick={()=>next()} className="hidden xl:block font-medium text-lg font-[Montserrat] text-[#00BE64] cursor-pointer  p-[0.90rem] rounded-lg">
             Next
           </button>
           <IconButton>

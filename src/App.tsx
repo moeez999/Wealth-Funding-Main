@@ -25,10 +25,14 @@ import RegistrationDetails from "./components/RegistrationDetails";
 import "./App.css";
 import ContestProgram from "./components/ContestProgram";
 import Certifications from "./components/Certifications";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient(); // Crée une instance de QueryClient
 
 function App() {
   return (
     <>
+     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={TuffxTheme}>
         <Router>
           <Routes>
@@ -67,6 +71,7 @@ function App() {
           </Routes>
         </Router>
       </ThemeProvider>
+      </QueryClientProvider>
     </>
   );
 }

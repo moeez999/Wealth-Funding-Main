@@ -1,47 +1,49 @@
 import { Box } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Pagination from "./Pagination";
+import { useEffect, useState } from "react";
+import useFetchAllAccounts from "../hooks/useFetchAllAccounts";
 
 const columns: GridColDef[] = [
   //   { field: "id", type: "number", headerName: "ID", width: 90 },
   {
-    field: "number",
-    headerName: "Number",
-    width: 150,
+    field: "accountId",
+    headerName: "Account Id",
+    width: 250,
     editable: false,
   },
   {
-    field: "title",
-    headerName: "Title",
-    width: 150,
+    field: "accountName",
+    headerName: "Account Name",
+    width: 250,
     editable: false,
   },
   {
-    field: "user",
+    field: "userId",
     headerName: "User",
     width: 150,
     editable: false,
   },
   {
-    field: "growth",
-    headerName: "Growth",
+    field: "status",
+    headerName: "Status",
     width: 150,
     editable: false,
   },
   {
-    field: "positions",
-    headerName: "Positions",
+    field: "type",
+    headerName: "Type",
     width: 150,
     editable: false,
   },
   {
-    field: "balance",
-    headerName: "Balance",
+    field: "createdDateTime",
+    headerName: "Created",
     type: "number",
-    width: 110,
+    width: 200,
     editable: false,
   },
-  {
+  /*{
     field: "equity",
     headerName: "Equity",
     type: "number",
@@ -60,7 +62,7 @@ const columns: GridColDef[] = [
     headerName: "Product",
     width: 150,
     editable: false,
-  },
+  },*/
 ];
 
 const rows = [
@@ -92,6 +94,20 @@ const rows = [
 ];
 
 const Accounts = () => {
+  const [accountData, setAccountData] = useState([]);
+  const [offset, setOffset] = useState(0);
+
+  
+  const { data, isLoading, error } = useFetchAllAccounts(offset); // Appel du hook directement
+  
+  useEffect(() => {
+    console.log('====================================');
+    console.log(offset);
+    console.log('====================================');
+      if (data) {
+          setAccountData(data.data); // Mettre à jour les données utilisateur
+      }
+  }, [offset,data]);
   return (
     <>
       <Box sx={{ width: "100%" }}>
@@ -116,9 +132,9 @@ const Accounts = () => {
               mt: "3px",
             },
           }}
-          rows={rows}
+          rows={accountData}
           getRowId={(row: any) => {
-            return row?.id;
+            return row?.accountId;
           }}
           columns={columns}
           hideFooter
@@ -126,7 +142,7 @@ const Accounts = () => {
           // disableRowSelectionOnClick
         />
       </Box>
-      <Pagination />
+      <Pagination next={()=>setOffset(offset+1)} prev={()=>offset>0?setOffset(offset-1):null} />
     </>
   );
 };

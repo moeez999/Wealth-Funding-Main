@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Typography } from "@mui/material";
 
 import UploadIcon from "../../assets/images/documentUploadIcon.svg";
@@ -13,9 +13,10 @@ interface IdCardFieldProps {
 const IdCardField: React.FC<IdCardFieldProps> = ({
   label = "Country identity card",
   description = "On desktop, Simply drag and drop your file in this field. Acceptable formats: JPEG, JPG or PNG.",
+  setFile
 }) => {
   const fileInputRef = useRef(null);
-
+  const [is_fill, setFill]=useState(false)
   const handleIconClick = () => {
     if (fileInputRef.current) {
       //@ts-ignore
@@ -27,9 +28,11 @@ const IdCardField: React.FC<IdCardFieldProps> = ({
     // Handle the selected file
     const selectedFile = e.target.files[0];
     console.log("Selected File:", selectedFile);
+    setFill(true)
+    setFile(selectedFile)
   };
   return (
-    <div className="h-[6.25rem] px-[1.69rem] w-full flex justify-between items-center rounded-lg bg-[#F4F4F4] border border-dashed border-gray-400">
+    <div className={`h-[6.25rem] px-[1.69rem] w-full flex justify-between items-center rounded-lg ${!is_fill ? "bg-[#F4F4F4]" : "bg-[#fca854]" } border border-dashed border-gray-400`}>
       <div className="flex flex-col">
         <Typography sx={{ ...stylesMui.inputLabel, color: "#0D1D54" }}>
           {label}

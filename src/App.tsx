@@ -26,6 +26,7 @@ import "./App.css";
 import ContestProgram from "./components/ContestProgram";
 import Certifications from "./components/Certifications";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import EmailVerification from "./components/EmailVerification";
 
 const queryClient = new QueryClient(); // Crée une instance de QueryClient
 
@@ -40,9 +41,10 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<Register />} />
             <Route
-              path="/registration-details"
+              path="/registration-details/:id"
               element={<RegistrationDetails />}
             />
+            <Route path="/email-verification" element={<EmailVerification/>}/>
             <Route
               path="/*"
               element={

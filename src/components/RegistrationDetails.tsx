@@ -22,6 +22,7 @@ const RegistrationDetails = () => {
   const handleSaveAndContinue = () => {
     // Handle save and continue logic
     //@ts-ignore
+    console.log("tes")
     setCompletedSteps([...completedSteps, activeStep]);
     setActiveStep((prevStep) => prevStep + 1);
   };
@@ -29,6 +30,7 @@ const RegistrationDetails = () => {
   //@ts-ignore
   const handlePersonalDetailsSubmit = (values: any) => {
     console.log("Personal Details Form Values:", values);
+    //submit form
     handleSaveAndContinue();
   };
 
@@ -64,12 +66,12 @@ const RegistrationDetails = () => {
       <div className="h-screen flex flex-col justify-center bg-[#F5F5F5]">
         {/* Render PersonalDetailsForm */}
         {activeStep === 0 && (
-          <PersonalDetailsForm onSubmit={handlePersonalDetailsSubmit} />
+          <PersonalDetailsForm onSubmit={handlePersonalDetailsSubmit} handleSaveAndContinue={handleSaveAndContinue}/>
         )}
 
         {/* Render AddressDetailsForm */}
         {activeStep === 1 && (
-          <AddressDetailsForm onSubmit={handleAddressDetailsSubmit} />
+          <AddressDetailsForm onSubmit={handleAddressDetailsSubmit} handleSaveAndContinue={handleSaveAndContinue}/>
         )}
 
         {/* Render IdentityDetailsForm */}
@@ -83,35 +85,6 @@ const RegistrationDetails = () => {
         )}
 
         <div className="md:ml-[3.75rem] mt-4 flex justify-start">
-          {activeStep < 3 ? (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSaveAndContinue}
-              sx={{
-                borderRadius: "0.25rem",
-                boxShadow: "0px 0px 6px 0px rgba(0, 0, 0, 0.08)",
-                width: "15.8125rem",
-                height: "3.75rem",
-              }}
-            >
-              Save & Continue
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleFinish}
-              sx={{
-                borderRadius: "0.25rem",
-                boxShadow: "0px 0px 6px 0px rgba(0, 0, 0, 0.08)",
-                width: "15.8125rem",
-                height: "3.75rem",
-              }}
-            >
-              Finish
-            </Button>
-          )}
         </div>
       </div>
     </DetailsSidebar>

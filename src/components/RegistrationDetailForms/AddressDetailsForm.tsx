@@ -5,6 +5,7 @@ import * as Yup from "yup";
 import {
   Autocomplete,
   Box,
+  Button,
   FormControl,
   FormHelperText,
   TextField,
@@ -14,17 +15,20 @@ import {
 import { regions } from "../../constants/regions";
 
 import { stylesMui } from "./styles";
+import { useParams } from "react-router-dom";
+import useUpdateAddress from "../../hooks/useUpdateAddress";
 interface AddressDetailsFormProps {
   onSubmit: (values: AddressDetailsValues) => void;
 }
 
 interface AddressDetailsValues {
-  line1: string;
-  line2: string;
+  id : string,
+  line_1: string;
+  line_2: string;
   city: string;
   region: string;
   country: string;
-  zipCode: string;
+  postal_code: string;
 }
 
 interface Region {
@@ -34,28 +38,45 @@ interface Region {
 const AddressDetailsForm: React.FC<AddressDetailsFormProps> = ({
   onSubmit,
 }) => {
+  let { id } = useParams();
+  const { mutate: updateUser} = useUpdateAddress()
   const initialValues: AddressDetailsValues = {
-    line1: "",
-    line2: "",
+    id: id,
+    line_1: "",
+    line_2: "",
     city: "",
     region: "",
     country: "",
-    zipCode: "",
+    postal_code: "",
   };
 
   const validationSchema = Yup.object({
-    line1: Yup.string().required("Address is required"),
-    line2: Yup.string().required("Address details are required"),
+    line_1: Yup.string().required("Address is required"),
+    line_2: Yup.string().required("Address details are required"),
     city: Yup.string().required("City is required"),
-    region: Yup.string().required("Region is required"),
+    region: Yup.string().nullable(),//required("Region is required"),
     country: Yup.string().required("Country is required"),
-    zipCode: Yup.string().required("ZIP Code is required"),
+    postal_code: Yup.string().required("ZIP Code is required"),
   });
 
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit,
+    onSubmit: (values) => {
+      onSubmit(values);
+    updateUser(values, {
+      onSuccess: async (res) => {
+          setStatus({ success: true });
+      },
+      onError: (error) => {
+          setStatus({ success: false });
+          setErrors({ submit: error.message });
+      },
+      onSettled: () => {
+          setSubmitting(false);
+      },
+  })
+}
   });
 
   return (
@@ -65,13 +86,13 @@ const AddressDetailsForm: React.FC<AddressDetailsFormProps> = ({
         <form onSubmit={formik.handleSubmit}>
           <FormControl
             fullWidth
-            error={Boolean(formik.touched.line1 && formik.errors.line1)}
+            error={Boolean(formik.touched.line_1 && formik.errors.line_1)}
           >
             <Typography sx={stylesMui.inputLabel}>Line 1</Typography>
             <TextField
-              id="outlined-adornment-line1"
-              value={formik.values.line1}
-              name="line1"
+              id="outlined-adornment-line_1"
+              value={formik.values.line_1}
+              name="line_1"
               onBlur={formik.handleBlur}
               onChange={formik.handleChange}
               placeholder="Flat no / House no"
@@ -82,22 +103,22 @@ const AddressDetailsForm: React.FC<AddressDetailsFormProps> = ({
               }}
               sx={{ ...stylesMui.inputField, mb: "1.19rem" }}
             />
-            {formik.touched.line1 && formik.errors.line1 && (
-              <FormHelperText error id="standard-weight-helper-text-line1">
-                {formik.errors.line1}
+            {formik.touched.line_1 && formik.errors.line_1 && (
+              <FormHelperText error id="standard-weight-helper-text-line_1">
+                {formik.errors.line_1}
               </FormHelperText>
             )}
           </FormControl>
 
           <FormControl
             fullWidth
-            error={Boolean(formik.touched.line2 && formik.errors.line2)}
+            error={Boolean(formik.touched.line_2 && formik.errors.line_2)}
           >
             <Typography sx={stylesMui.inputLabel}>Line 2</Typography>
             <TextField
-              id="outlined-adornment-line2"
-              value={formik.values.line2}
-              name="line2"
+              id="outlined-adornment-line_2"
+              value={formik.values.line_2}
+              name="line_2"
               onBlur={formik.handleBlur}
               onChange={formik.handleChange}
               placeholder="Street name / Building no / Plot no"
@@ -108,9 +129,9 @@ const AddressDetailsForm: React.FC<AddressDetailsFormProps> = ({
               }}
               sx={{ ...stylesMui.inputField, mb: "1.19rem" }}
             />
-            {formik.touched.line2 && formik.errors.line2 && (
-              <FormHelperText error id="standard-weight-helper-text-line2">
-                {formik.errors.line2}
+            {formik.touched.line_2 && formik.errors.line_2 && (
+              <FormHelperText error id="standard-weight-helper-text-line_2">
+                {formik.errors.line_2}
               </FormHelperText>
             )}
           </FormControl>
@@ -218,18 +239,18 @@ const AddressDetailsForm: React.FC<AddressDetailsFormProps> = ({
 
             <FormControl
               fullWidth
-              error={Boolean(formik.touched.zipCode && formik.errors.zipCode)}
+              error={Boolean(formik.touched.postal_code && formik.errors.postal_code)}
             >
               <Typography sx={stylesMui.inputLabel}>
-                Postal / ZipCode
+                Postal / ZIpCode
               </Typography>
               <TextField
-                id="outlined-adornment-zipCode"
-                value={formik.values.zipCode}
-                name="zipCode"
+                id="outlined-adornment-postal_code"
+                value={formik.values.postal_code}
+                name="postal_code"
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
-                placeholder="Enter potal / zipcode"
+                placeholder="Enter potal / postal_code"
                 inputProps={{
                   style: {
                     height: "1.5rem",
@@ -237,13 +258,26 @@ const AddressDetailsForm: React.FC<AddressDetailsFormProps> = ({
                 }}
                 sx={{ ...stylesMui.inputField, mb: "1.19rem" }}
               />
-              {formik.touched.zipCode && formik.errors.zipCode && (
-                <FormHelperText error id="standard-weight-helper-text-zipCode">
-                  {formik.errors.zipCode}
+              {formik.touched.postal_code && formik.errors.postal_code && (
+                <FormHelperText error id="standard-weight-helper-text-postal_code">
+                  {formik.errors.postal_code}
                 </FormHelperText>
               )}
             </FormControl>
           </div>
+          <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              sx={{
+                borderRadius: "0.25rem",
+                boxShadow: "0px 0px 6px 0px rgba(0, 0, 0, 0.08)",
+                width: "15.8125rem",
+                height: "3.75rem",
+              }}
+            >
+              Save & Continue
+            </Button>
         </form>
       </div>
     </>

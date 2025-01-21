@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // material-ui
 import {
@@ -15,6 +15,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import useSendEmailVerification from '../../hooks/useSendEmailVerification'
 
 // third party
 import * as Yup from "yup";
@@ -28,6 +29,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import ButtonAuth from "../ButtonAuth";
 
 import { stylesMui } from "./styles";
+import useRegister from "../../hooks/useRegister";
 
 // ===========================|| Auth REGISTER ||=========================== //
 
@@ -36,6 +38,7 @@ const AuthRegister = () => {
   const [checkedPrivacy, setCheckedPrivacy] = useState();
   // const [checkedNewsletter, setCheckedNewsletter] = useState();
   const [checkedCorrect, setCheckedCorrect] = useState();
+  const { mutate: createUser, isLoading } = useRegister()
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -44,14 +47,13 @@ const AuthRegister = () => {
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
-
+  const navigate =useNavigate();
   return (
     <>
       <Formik
         initialValues={{
-          username: "",
-          fname: "",
-          lname: "",
+          firstname: "",
+          lastname: "",
           email: "",
           phone: "",
           password: "",
@@ -59,28 +61,53 @@ const AuthRegister = () => {
           submit: null,
         }}
         validationSchema={Yup.object().shape({
-          username: Yup.string().required("Username is required"),
-          fname: Yup.string().required("First Name is required"),
-          lname: Yup.string().required("Last Name is required"),
+          firstname: Yup.string().required("First Name is required"),
+          lastname: Yup.string().required("Last Name is required"),
           email: Yup.string()
             .email("Must be a valid email")
             .max(255)
             .required("Email is required"),
           password: Yup.string().max(255).required("Password is required"),
           phone: Yup.string().required("Phone is required"),
-          country: Yup.string().required("Country is required"),
+          country: Yup.string().nullable(),
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            setStatus({ success: true });
-            setSubmitting(false);
+              // Appel à la fonction `createUser`
+              createUser(values, {
+                  onSuccess: async (res) => {
+                      setStatus({ success: true });
+      
+                      // Enregistre l'e-mail dans localStorage
+                      localStorage.setItem("email_verification", values.email);
+      
+                      // Navigue vers la page de vérification de l'e-mail
+                      navigate("/email-verification");
+      
+                      // Envoie l'e-mail de vérification
+                      try {
+                          await useSendEmailVerification(res.data.user.id, values.firstname, values.lastname);
+                          localStorage.setItem("resend_verification", [res.data.user.id, values.firstname, values.lastname]);
+                      } catch (emailError) {
+                          console.error("Erreur lors de l'envoi de l'e-mail :", emailError.message);
+                      }
+                  },
+                  onError: (error) => {
+                      setStatus({ success: false });
+                      setErrors({ submit: error.message });
+                  },
+                  onSettled: () => {
+                      setSubmitting(false);
+                  },
+              });
           } catch (err) {
-            console.error(err);
-            setStatus({ success: false });
-            setErrors({ submit: err.message });
-            setSubmitting(false);
+              console.error("Erreur lors de la création de l'utilisateur :", err);
+              setStatus({ success: false });
+              setErrors({ submit: err.message });
+              setSubmitting(false);
           }
-        }}
+      }}
+      
       >
         {({
           errors,
@@ -124,14 +151,14 @@ const AuthRegister = () => {
               <div className="flex flex-col md:flex-row gap-4 items-end">
                 <FormControl
                   fullWidth
-                  error={Boolean(touched.fname && errors.fname)}
+                  error={Boolean(touched.firstname && errors.firstname)}
                   sx={stylesMui.formController}
                 >
                   <Typography sx={stylesMui.inputLabel}>First Name</Typography>
                   <OutlinedInput
-                    id="outlined-adornment-fname-register"
-                    value={values.fname}
-                    name="fname"
+                    id="outlined-adornment-firstname-register"
+                    value={values.firstname}
+                    name="firstname"
                     onBlur={handleBlur}
                     onChange={handleChange}
                     placeholder="Enter Your First Name"
@@ -141,26 +168,26 @@ const AuthRegister = () => {
                       },
                     }}
                   />
-                  {touched.fname && errors.fname && (
+                  {touched.firstname && errors.firstname && (
                     <FormHelperText
                       error
                       id="standard-weight-helper-text--register"
                     >
-                      {errors.fname}
+                      {errors.firstname}
                     </FormHelperText>
                   )}
                 </FormControl>
 
                 <FormControl
                   fullWidth
-                  error={Boolean(touched.lname && errors.lname)}
+                  error={Boolean(touched.lastname && errors.lastname)}
                   sx={stylesMui.formController}
                 >
                   <Typography sx={stylesMui.inputLabel}>Last Name</Typography>
                   <OutlinedInput
-                    id="outlined-adornment-lname-register"
-                    value={values.lname}
-                    name="lname"
+                    id="outlined-adornment-lastname-register"
+                    value={values.lastname}
+                    name="lastname"
                     onBlur={handleBlur}
                     onChange={handleChange}
                     placeholder="Enter Your Last Name"
@@ -170,12 +197,12 @@ const AuthRegister = () => {
                       },
                     }}
                   />
-                  {touched.lname && errors.lname && (
+                  {touched.lastname && errors.lastname && (
                     <FormHelperText
                       error
                       id="standard-weight-helper-text--register"
                     >
-                      {errors.lname}
+                      {errors.lastname}
                     </FormHelperText>
                   )}
                 </FormControl>
@@ -395,7 +422,7 @@ const AuthRegister = () => {
               </div>
             </div>
             <div className="mb-[0.62rem]">
-              <GoogleRecaptcha />
+              {/* <GoogleRecaptcha /> */}
             </div>
 
             {/* Add link to t and c here  */}
@@ -405,9 +432,9 @@ const AuthRegister = () => {
             </Typography>
 
             <div className="mt-1">
-              <Link to="/registration-details">
+              {/* <Link to="/registration-details"> */}
                 <ButtonAuth labelText="Sign Up" />
-              </Link>
+              {/* </Link> */}
             </div>
             {/* {errors.submit && (
               <Box sx={{ mt: 3 }}>

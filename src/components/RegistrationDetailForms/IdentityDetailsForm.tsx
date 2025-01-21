@@ -3,6 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 
 import {
+  Button,
   FormControl,
   FormHelperText,
   TextField,
@@ -13,57 +14,100 @@ import IdCardField from "./IdCardField";
 import PhotoUpload from "./PhotoUpload";
 
 import { stylesMui } from "./styles";
+import useAddIdentity from "../../hooks/useAddIdentity";
+import { useParams } from "react-router-dom";
+import useUploadFile from "../../hooks/useUploadFile";
 
 interface IdentityDetailsFormProps {
   onSubmit: (values: IdentityDetailsValues) => void;
 }
 
 interface IdentityDetailsValues {
-  countryId: string;
-  idNumber: string;
-  passportNumber: string;
+  user_id: string;
+  country_id: string;
+  number_id: string;
+  passport_id: string;
 }
 
 const IdentityDetailsForm: React.FC<IdentityDetailsFormProps> = ({
-  onSubmit,
+  onSubmit
 }) => {
+  let { id } = useParams();
   const initialValues: IdentityDetailsValues = {
-    countryId: "",
-    idNumber: "",
-    passportNumber: "",
+    user_id: id,
+    country_id: "",
+    number_id: "",
+    passport_id: "",
   };
+  const { mutate: addIdentity} = useAddIdentity();
+  const { mutate: addFiles} = useUploadFile();
+
+  const [national_id, setNationalId] = React.useState<File | null>(null);
+  const [passport, setPassport] = React.useState<File | null>(null);
 
   const validationSchema = Yup.object({
-    countryId: Yup.string().required("Country ID is required"),
-    idNumber: Yup.string().required("ID number is required"),
-    passportNumber: Yup.string().required("Passport number is required"),
+    country_id: Yup.string().required("Country ID is required"),
+    number_id: Yup.string().required("ID number is required"),
+    passport_id: Yup.string().required("Passport number is required"),
   });
 
   const formik = useFormik({
     initialValues,
     validationSchema,
-    onSubmit,
+    onSubmit:(values) => {
+      if(national_id && passport){
+        const formData = new FormData();
+        formData.append("userId", id);
+        formData.append("national_id", national_id);
+        formData.append("passport", passport);
+        onSubmit(values);
+          addIdentity(values, {
+            onSuccess: async (res) => {
+                setStatus({ success: true });
+            },
+            onError: (error) => {
+                setStatus({ success: false });
+                setErrors({ submit: error.message });
+            },
+            onSettled: () => {
+                setSubmitting(false);
+            },
+        });
+        addFiles(formData, {
+          onSuccess: async (res) => {
+              setStatus({ success: true });
+          },
+          onError: (error) => {
+              setStatus({ success: false });
+              setErrors({ submit: error.message });
+          },
+          onSettled: () => {
+              setSubmitting(false);
+          },
+      });
+    }
+  },
   });
 
   return (
     <>
       <div className="w-full md:w-4/6 md:ml-[3.75rem] flex flex-col justify-center">
         <Typography sx={stylesMui.formTitleText}>Identity details</Typography>
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={formik.handleSubmit} encType="multipart/form-data">
           <div className="flex flex-col md:flex-row gap-7 items-end">
             <FormControl
               fullWidth
               error={Boolean(
-                formik.touched.countryId && formik.errors.countryId
+                formik.touched.country_id && formik.errors.country_id
               )}
             >
               <Typography sx={stylesMui.inputLabel}>
                 Country identity name
               </Typography>
               <TextField
-                id="outlined-adornment-countryId"
-                value={formik.values.countryId}
-                name="countryId"
+                id="outlined-adornment-country_id"
+                value={formik.values.country_id}
+                name="country_id"
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 placeholder="Enter identity name"
@@ -74,25 +118,25 @@ const IdentityDetailsForm: React.FC<IdentityDetailsFormProps> = ({
                 }}
                 sx={{ ...stylesMui.inputField, mb: "1.19rem" }}
               />
-              {formik.touched.countryId && formik.errors.countryId && (
+              {formik.touched.country_id && formik.errors.country_id && (
                 <FormHelperText
                   error
-                  id="standard-weight-helper-text-countryId"
+                  id="standard-weight-helper-text-country_id"
                 >
-                  {formik.errors.countryId}
+                  {formik.errors.country_id}
                 </FormHelperText>
               )}
             </FormControl>
 
             <FormControl
               fullWidth
-              error={Boolean(formik.touched.idNumber && formik.errors.idNumber)}
+              error={Boolean(formik.touched.number_id && formik.errors.number_id)}
             >
               <Typography sx={stylesMui.inputLabel}>Identity number</Typography>
               <TextField
-                id="outlined-adornment-idNumber"
-                value={formik.values.idNumber}
-                name="idNumber"
+                id="outlined-adornment-number_id"
+                value={formik.values.number_id}
+                name="number_id"
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 placeholder="Enter identity number"
@@ -103,30 +147,30 @@ const IdentityDetailsForm: React.FC<IdentityDetailsFormProps> = ({
                 }}
                 sx={{ ...stylesMui.inputField, mb: "1.19rem" }}
               />
-              {formik.touched.idNumber && formik.errors.idNumber && (
-                <FormHelperText error id="standard-weight-helper-text-idNumber">
-                  {formik.errors.idNumber}
+              {formik.touched.number_id && formik.errors.number_id && (
+                <FormHelperText error id="standard-weight-helper-text-number_id">
+                  {formik.errors.number_id}
                 </FormHelperText>
               )}
             </FormControl>
           </div>
-          <IdCardField />
+          <IdCardField setFile={setNationalId} />
           <Typography sx={{ ...stylesMui.inputLabel, mt: "1rem" }}>
             Upload passport size photo
           </Typography>
-          <PhotoUpload />
+          <PhotoUpload setFile={setPassport}/>
           <div className="mt-4 w-full md:w-4/6">
             <FormControl
               fullWidth
               error={Boolean(
-                formik.touched.passportNumber && formik.errors.passportNumber
+                formik.touched.passport_id && formik.errors.passport_id
               )}
             >
               <Typography sx={stylesMui.inputLabel}>Passport</Typography>
               <TextField
-                id="outlined-adornment-passportNumber"
-                value={formik.values.passportNumber}
-                name="passportNumber"
+                id="outlined-adornment-passport_id"
+                value={formik.values.passport_id}
+                name="passport_id"
                 onBlur={formik.handleBlur}
                 onChange={formik.handleChange}
                 placeholder="Enter passport"
@@ -137,17 +181,30 @@ const IdentityDetailsForm: React.FC<IdentityDetailsFormProps> = ({
                 }}
                 sx={{ ...stylesMui.inputField, mb: "1.19rem" }}
               />
-              {formik.touched.passportNumber &&
-                formik.errors.passportNumber && (
+              {formik.touched.passport_id &&
+                formik.errors.passport_id && (
                   <FormHelperText
                     error
-                    id="standard-weight-helper-text-passportNumber"
+                    id="standard-weight-helper-text-passport_id"
                   >
-                    {formik.errors.passportNumber}
+                    {formik.errors.passport_id}
                   </FormHelperText>
                 )}
             </FormControl>
           </div>
+          <Button
+              variant="contained"
+              color="primary"
+              type="submit"
+              sx={{
+                borderRadius: "0.25rem",
+                boxShadow: "0px 0px 6px 0px rgba(0, 0, 0, 0.08)",
+                width: "15.8125rem",
+                height: "3.75rem",
+              }}
+            >
+              Save & Continue
+            </Button>
         </form>
       </div>
     </>

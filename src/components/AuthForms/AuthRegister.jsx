@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 // material-ui
 import {
+  Alert,
   Autocomplete,
   Box,
+  Button,
   Checkbox,
   FormControl,
   FormControlLabel,
@@ -16,6 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import useSendEmailVerification from '../../hooks/useSendEmailVerification'
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 // third party
 import * as Yup from "yup";
@@ -26,10 +29,17 @@ import GoogleRecaptcha from "../GoogleRecaptcha";
 import { countries } from "../../constants/countries";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import {
+  loadCaptchaEnginge,
+  LoadCanvasTemplate,
+  validateCaptcha,
+  LoadCanvasTemplateNoReload,
+} from 'react-simple-captcha';
 import ButtonAuth from "../ButtonAuth";
 
 import { stylesMui } from "./styles";
 import useRegister from "../../hooks/useRegister";
+
 
 // ===========================|| Auth REGISTER ||=========================== //
 
@@ -37,8 +47,37 @@ const AuthRegister = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [checkedPrivacy, setCheckedPrivacy] = useState();
   // const [checkedNewsletter, setCheckedNewsletter] = useState();
+  const [input, setInput] = useState('');
+  const [captcha, setCaptcha] = useState(''); 
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [checkedCorrect, setCheckedCorrect] = useState();
   const { mutate: createUser, isLoading } = useRegister()
+
+  const navigate =useNavigate();
+
+  // Charger le captcha au montage du composant
+  useEffect(() => {
+    loadCaptchaEnginge(6); // Longueur du captcha : 6 caractères
+  }, []);
+
+  // Fonction de soumission
+  const doSubmit = () => {
+    if (validateCaptcha(input)) {
+      setSuccess('Captcha vérifié avec succès!');
+      setError('');
+      setInput(''); // Réinitialiser la saisie utilisateur
+    } else {
+      setError('Incorrect captcha. Please try again.');
+      setSuccess('');
+      setInput('');
+      handleClickRefresh();
+    }
+  };
+
+  const handleClickRefresh=()=>{
+    loadCaptchaEnginge(6); // Recharger le captcha
+  }
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -47,7 +86,6 @@ const AuthRegister = () => {
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
-  const navigate =useNavigate();
   return (
     <>
       <Formik
@@ -72,6 +110,8 @@ const AuthRegister = () => {
           country: Yup.string().nullable(),
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+          doSubmit();
+          if(!error){
           try {
               // Appel à la fonction `createUser`
               createUser(values, {
@@ -106,6 +146,7 @@ const AuthRegister = () => {
               setErrors({ submit: err.message });
               setSubmitting(false);
           }
+        }
       }}
       
       >
@@ -360,6 +401,37 @@ const AuthRegister = () => {
                 />
               </FormControl>
             </div>
+            <div className="my-[0.62rem]">
+          <Typography sx={stylesMui.inputLabel}>Enter Captcha</Typography>
+          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+            <Box sx={{border: '2px solid #ddd', borderRadius:3, padding:2}} e><LoadCanvasTemplateNoReload /></Box>
+            
+          <IconButton onClick={handleClickRefresh} sx={{ ml: 1 }}>
+          <RefreshIcon/>
+          </IconButton>
+          </Box>
+          
+                <OutlinedInput
+                  id="outlined-adornment-captcha"
+                  value={input}
+                  fullWidth
+                  name="catpcha"
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Enter Your Number with country code"
+                  inputProps={{
+                    style: {
+                      height: "1rem",
+                    },
+                  }}
+                />
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+        </div>
+
             <div className="my-1 gap-4" id="checkboxes">
               <div>
                 <FormControlLabel

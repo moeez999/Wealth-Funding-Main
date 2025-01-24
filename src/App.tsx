@@ -28,51 +28,73 @@ import Certifications from "./components/Certifications";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import EmailVerification from "./components/EmailVerification";
 
+import PrivateRoute from "./components/PrivateRoute"; // Import du composant PrivateRoute
+import RedirectIfAuthenticated from "./components/RedirectIfAuthenticated";
+
 const queryClient = new QueryClient(); // Crée une instance de QueryClient
 
 function App() {
   return (
     <>
-     <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={TuffxTheme}>
-        <Router>
-          <Routes>
-            <Route path="/forgot-password" element={<Forget />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/sign-up" element={<Register />} />
-            <Route
-              path="/registration-details/:id"
-              element={<RegistrationDetails />}
-            />
-            <Route path="/email-verification" element={<EmailVerification/>}/>
-            <Route
-              path="/*"
-              element={
-                <Sidebar>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/add" element={<Add />} />
-                    <Route path="/edit" element={<Edit />} />
-                    <Route path="/view" element={<View />} />
-                    <Route path="/chart" element={<Chart />} />
-                    <Route path="/users" element={<Users />} />
-                    <Route path="/challenges" element={<Challenges />} />
-                    <Route path="/help" element={<HelpDesk />} />
-                    <Route path="/payment" element={<Payment />} />
-                    <Route path="/withdrawals" element={<WithDrawal />} />
-                    <Route path="/portal" element={<AffiliateProgram />} />
-                    <Route path="/certification" element={<Certifications />} />
-                    <Route
-                      path="/contest-programs"
-                      element={<ContestProgram />}
-                    />
-                  </Routes>
-                </Sidebar>
-              }
-            />
-          </Routes>
-        </Router>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={TuffxTheme}>
+          <Router>
+            <Routes>
+              {/* Routes publiques */}
+              <Route path="/forgot-password" element={<Forget />} />
+              <Route path="/login" element={
+                  <RedirectIfAuthenticated>
+                    <Login />
+                  </RedirectIfAuthenticated>
+              } />
+              <Route path="/sign-up" element={
+                <RedirectIfAuthenticated>
+                  <Register />
+                </RedirectIfAuthenticated>
+              } />
+              <Route
+                path="/registration-details/:id"
+                element={<RegistrationDetails />}
+              />
+              <Route
+                path="/email-verification"
+                element={<EmailVerification />}
+              />
+
+              {/* Routes protégées */}
+              <Route
+                path="/*"
+                element={
+                  <PrivateRoute>
+                    <Sidebar>
+                      <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/add" element={<Add />} />
+                        <Route path="/edit" element={<Edit />} />
+                        <Route path="/view" element={<View />} />
+                        <Route path="/chart" element={<Chart />} />
+                        <Route path="/users" element={<Users />} />
+                        <Route path="/challenges" element={<Challenges />} />
+                        <Route path="/help" element={<HelpDesk />} />
+                        <Route path="/payment" element={<Payment />} />
+                        <Route path="/withdrawals" element={<WithDrawal />} />
+                        <Route path="/portal" element={<AffiliateProgram />} />
+                        <Route
+                          path="/certification"
+                          element={<Certifications />}
+                        />
+                        <Route
+                          path="/contest-programs"
+                          element={<ContestProgram />}
+                        />
+                      </Routes>
+                    </Sidebar>
+                  </PrivateRoute>
+                }
+              />
+            </Routes>
+          </Router>
+        </ThemeProvider>
       </QueryClientProvider>
     </>
   );

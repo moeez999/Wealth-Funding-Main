@@ -166,6 +166,8 @@ const Header: React.FC<HeaderProps> = ({ menuItem, menuItem1 }) => {
         <List>
           <ListItemButton
             onClick={() => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
               navigate("/login");
             }}
           >
